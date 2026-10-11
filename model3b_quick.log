@@ -1,0 +1,16 @@
+=== N=10 (n=5)  E0=-2.14258296  deg=2  imag weight=0.6584
+    RY+CZ      P= 4 ( 25 params): E=-0.980644   rel err =  54.2%
+    RY+RZ+CZ   P= 4 ( 50 params): E=-2.142463   rel err =   0.0%
+    ADAPT (real_reference   ): E=-2.06955240  30 ops   rel err =   3.41%  (0.3s)
+    ADAPT (complex_reference): E=-2.05300540  30 ops   rel err =   4.18%  (0.4s)
+=== N=12 (n=6)  E0=-2.34262918  deg=2  imag weight=0.6737
+    RY+CZ      P= 4 ( 30 params): E=-1.136983   rel err =  51.5%
+    RY+RZ+CZ   P= 4 ( 60 params): E=-2.143390   rel err =   8.5%
+    ADAPT (real_reference   ): E=-2.05946229  36 ops   rel err =  12.09%  (0.5s)
+    ADAPT (complex_reference): E=-1.99687979  36 ops   rel err =  14.76%  (0.5s)
+=== N=14 (n=7)  E0=-2.79580942  deg=2  imag weight=0.6272
+    RY+CZ      P= 4 ( 35 params): E=-1.309377   rel err =  53.2%
+    RY+RZ+CZ   P= 4 ( 70 params): E=-2.253358   rel err =  19.4%
+    ADAPT (real_reference   ): E=-2.03809145  42 ops   rel err =  27.10%  (0.7s)
+    ADAPT (complex_reference): E=-2.08970854  42 ops   rel err =  25.26%  (0.6s)
+done

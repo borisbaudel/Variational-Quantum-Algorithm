@@ -1,0 +1,33 @@
+Model 2 -- Haldane-Shastry
+
+L=  4  E0(ED) = -2.1589759627   formula = -2.1589759627   |diff| = 4.44e-16
+        identity err 8.9e-16   operator err 2.2e-16   dim(Sz=0) 6
+        Jastrow: E = -0.9252754126  residual = 4.11e-16  |<gs|psi>| = 0.0000000000
+        Jastrow x prod z: residual = 7.59e-16  |<gs|psi>| = 1.0000000000
+
+L=  6  E0(ED) = -2.8100956975   formula = -2.8100956975   |diff| = 1.33e-15
+        identity err 1.1e-15   operator err 5.6e-16   dim(Sz=0) 20
+        Jastrow: E = -1.9876286641  residual = 1.27e-15  |<gs|psi>| = 0.0000000000
+        Jastrow x prod z: residual = 1.84e-15  |<gs|psi>| = 1.0000000000
+
+L=  8  E0(ED) = -3.5468890816   formula = -3.5468890816   |diff| = 1.33e-15
+        identity err 8.9e-16   operator err 2.2e-16   dim(Sz=0) 70
+        Jastrow: E = -2.9300388066  residual = 9.21e-16  |<gs|psi>| = 0.0000000000
+        Jastrow x prod z: residual = 1.13e-15  |<gs|psi>| = 1.0000000000
+
+L= 10  E0(ED) = -4.3179519255   formula = -4.3179519255   |diff| = 3.55e-15
+        identity err 8.9e-16   operator err 6.7e-16   dim(Sz=0) 252
+        Jastrow: E = -3.8244717054  residual = 1.41e-15  |<gs|psi>| = 0.0000000000
+        Jastrow x prod z: residual = 2.25e-15  |<gs|psi>| = 1.0000000000
+
+L= 12  E0(ED) = -5.1061494992   formula = -5.1061494992   |diff| = 8.88e-15
+        identity err 1.3e-15   operator err 2.6e-15   dim(Sz=0) 924
+        Jastrow: E = -4.6949159825  residual = 5.18e-15  |<gs|psi>| = 0.0000000000
+        Jastrow x prod z: residual = 6.87e-15  |<gs|psi>| = 1.0000000000
+
+L= 14  E0(ED) = -5.9041383471   formula = -5.9041383471   |diff| = 8.88e-16
+        identity err 3.3e-15   operator err 4.2e-15   dim(Sz=0) 3432
+        Jastrow: E = -5.5516524756  residual = 6.92e-15  |<gs|psi>| = 0.0000000000
+        Jastrow x prod z: residual = 1.33e-14  |<gs|psi>| = 1.0000000000
+
+  -pi^2/24 = -0.4112335167   (E0/L at L=14 is -0.4217241676)

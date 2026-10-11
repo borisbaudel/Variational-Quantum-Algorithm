@@ -1,0 +1,28 @@
+
+A. shot-noise cost of one energy evaluation (eps = 1e-3)
+  XXX  L=8                  24 terms  ||c||_1 =   24.000      3 QWC groups
+                         sd(2000 shots/group) = 0.09650  ->  5.587e+07 total shots for eps = 1e-3
+  Haldane-Shastry L=8       84 terms  ||c||_1 =    9.715      3 QWC groups
+                         sd(2000 shots/group) = 0.01699  ->  1.732e+06 total shots for eps = 1e-3
+  SYK  N=8                  70 terms  ||c||_1 =    6.308     41 QWC groups
+                         sd(2000 shots/group) = 0.01963  ->  3.158e+07 total shots for eps = 1e-3
+  SYK  N=12                495 terms  ||c||_1 =   23.435    196 QWC groups
+                         sd(2000 shots/group) = 0.02618  ->  2.686e+08 total shots for eps = 1e-3
+
+B. q = 2 Gaussian warm start for SYK
+  N=10: E0(SYK) = -2.142583   E0(q=2) = -2.437129   |<psi_SYK|psi_q2>| = 0.4275
+      ADAPT from q=2 state : E = -2.14258296  30 ops  rel err =   0.00%
+      brickwork, adiabatic : E = -2.13961656  rel err =   0.14%
+      brickwork, cold start: E = -2.14246284  rel err =   0.01%
+
+  N=12: E0(SYK) = -2.342629   E0(q=2) = -3.303643   |<psi_SYK|psi_q2>| = 0.0705
+      ADAPT from q=2 state : E = -2.33947263  36 ops  rel err =   0.13%
+      brickwork, adiabatic : E = -2.12473866  rel err =   9.30%
+      brickwork, cold start: E = -2.14338988  rel err =   8.50%
+
+  N=14: E0(SYK) = -2.795809   E0(q=2) = -3.759383   |<psi_SYK|psi_q2>| = 0.0869
+      ADAPT from q=2 state : E = -2.27288938  42 ops  rel err =  18.70%
+      brickwork, adiabatic : E = -2.14766237  rel err =  23.18%
+      brickwork, cold start: E = -2.25335768  rel err =  19.40%
+
+written results/model4_extras.json

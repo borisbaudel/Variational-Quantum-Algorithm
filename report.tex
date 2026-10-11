@@ -1,0 +1,738 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs}
+\usepackage{mathtools}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{microtype}
+\usepackage[colorlinks=true,linkcolor=nvy,citecolor=nvy,urlcolor=nvy]{hyperref}
+\usepackage{xcolor}
+\definecolor{nvy}{HTML}{0F2440}
+\definecolor{red2}{HTML}{B03A2E}
+\usepackage{titlesec}
+\titleformat{\section}{\normalfont\large\bfseries\color{nvy}}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\bfseries}{\thesubsection}{0.6em}{}
+\newcommand{\ket}[1]{\lvert #1 \rangle}
+\newcommand{\bra}[1]{\langle #1 \rvert}
+\newcommand{\ip}[2]{\langle #1 | #2 \rangle}
+\newcommand{\ssig}{\bm{\sigma}}
+\newcommand{\note}[1]{\textcolor{red2}{#1}}
+\setlength{\parskip}{0.35em}
+
+\title{\vspace{-1.6cm}\textbf{Variational ground states of three spin-chain
+Hamiltonians}\\[2pt]
+\large XXX Heisenberg, Haldane--Shastry, and Sachdev--Ye--Kitaev}
+\author{Boris-Alexandre Baudel}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-1.0cm}
+
+\section*{What is in here, and what is not}
+
+Three models, three different answers, and I think the differences are the
+interesting part of the exercise.
+
+\textbf{Model 1 (XXX).} Solved. A Hamiltonian Variational Ansatz that is
+exactly implementable (no Trotter error) and that is protected by $SU(2)$
+symmetry reaches machine precision for $L \le 6$ and $10^{-6}$ relative error
+at $L=8$. At $L=12,16$ a random initialisation stalls at a
+few percent; growing the circuit one layer at a time from the previous optimum
+recovers a factor of $10$ at $L=12$ and a factor of $105$ at $L=16$
+($1.6\times10^{-2} \to 1.5\times10^{-4}$). Both strategies are reported,
+because the difference between them is the actual lesson.
+
+\textbf{Model 2 (Haldane--Shastry).} Solved analytically, and this is the
+honest answer rather than a variational one. Three lines of algebra reduce the
+Hamiltonian as written to the textbook Haldane--Shastry chain; its ground state
+is then the Gutzwiller--Jastrow wavefunction, which I construct explicitly and
+verify to be an exact eigenvector with unit overlap with the numerical ground
+state at every accessible $L$. A VQE here would be a variational
+approximation to something already known in closed form.
+
+\textbf{Model 3 (SYK).} Not solved --- and the report explains \emph{why}
+with measured numbers rather than adjectives. Five obstructions are quantified.
+Two are engineering problems with known partial cures; one --- the volume-law
+entanglement of the ground state --- is a statement about circuit expressivity
+that no optimiser tuning can fix; and one turned out to be embarrassingly
+simple and is usually not on the list, namely that the ground state is
+intrinsically \emph{complex} while the textbook hardware-efficient ansatz has
+real amplitudes only. ADAPT-VQE is implemented rather than merely
+recommended, and the result is negative: with a Hamiltonian-derived pool it
+beats the real-amplitude brickwork by a mile but does \emph{not} beat a
+complex-capable one at these sizes. Reporting that seemed more useful than
+tuning the budget until the ordering flipped.
+
+\textbf{Two things that are usually asserted and are measured here instead.}
+Sections~\ref{sec:shots} and~\ref{sec:warm}: the sampling cost is
+measured with an unbiased grouped estimator rather than bounded by a
+formula ($\sim\!10^8$ shots for one SYK energy at $N=12$ to $10^{-3}$, and the
+ordering across models is set by $\|c\|_1$, not by the number of terms); and
+the Gaussian $q=2$ warm start is implemented rather than proposed --- it is
+what turns the negative ADAPT result positive.
+
+Everything numerical is cross-validated: the fast in-house state-vector engine
+is checked against Qiskit, the analytic gradient against finite differences,
+the closed-form energies against exact diagonalisation, and the reduced
+$S^z$ sector against the full Hilbert space. All numbers in the tables are
+generated from the run outputs, not typed in.
+Appendix~\ref{app:math} derives every identity used anywhere in the report and
+\emph{evaluates} it: $47$ checks, $47$ passing, each with its residual listed.
+One of them is a trap worth naming: the parameter-shift rule for the exchange
+gate does exist, but only in rescaled form, and it stops being usable for a
+whole layer --- the appendix gives both statements and the frequency count
+behind them.
+
+\section{Conventions}
+
+\paragraph{Pauli versus spin operators.} The assignment writes the
+Hamiltonians with Pauli matrices. Since $\ssig = 2\bm{S}$,
+\begin{equation}
+  \ssig_i \cdot \ssig_j = 4\, \bm{S}_i \cdot \bm{S}_j ,
+\end{equation}
+and every comparison with a textbook result has to carry that factor of four.
+It is the single most common way to be wrong by a factor of $4$ in this
+problem, so it is stated once and used consistently.
+
+\paragraph{Qubit ordering.} Internally site $0$ is the most significant tensor
+factor, $\ket{s_0 s_1 \dots s_{L-1}}$. Qiskit is little-endian. All Pauli
+labels handed to Qiskit are therefore reversed; the cross-check in
+Section~\ref{sec:soft} verifies that the two conventions give identical
+expectation values.
+
+\paragraph{Sectors.} All three Hamiltonians commute with $S^z_{\rm tot}$, and
+Models 1 and 2 also commute with $\bm{S}^2_{\rm tot}$. Exact diagonalisation is
+performed in the $S^z = 0$ sector ($\binom{16}{8} = 12870$ states instead of
+$65536$ at $L=16$) and cross-checked against the full space wherever that is
+affordable.
+
+\section{Model 1: the XXX Heisenberg chain}
+
+\subsection{Benchmark}
+
+For $H_{\rm XXX} = J\sum_{i=1}^{L}\ssig_i\cdot\ssig_{i+1}$ with periodic
+boundary conditions, the Bethe-ansatz result for the isotropic
+antiferromagnet, $E/L \to J(\tfrac14 - \ln 2)$ in the spin normalisation,
+becomes
+\begin{equation}
+  \frac{E_0}{L} \;\longrightarrow\; 4J\left(\tfrac14 - \ln 2\right)
+  = J\,(1 - 4\ln 2) = -1.7725887\,J .
+\end{equation}
+This is the target for the finite-size extrapolation.
+
+\subsection{Ansatz: why this one}
+
+The PBC chain with even $L$ splits into two sets of \emph{disjoint} bonds,
+\begin{equation}
+  B_{\rm odd} = \{(0,1),(2,3),\dots\},\qquad
+  B_{\rm even} = \{(1,2),(3,4),\dots,(L{-}1,0)\},
+\end{equation}
+so that $H = H_{\rm odd} + H_{\rm even}$ with each $H_\bullet$ a sum of
+commuting two-site terms. The Hamiltonian Variational Ansatz
+\begin{equation}
+  \ket{\psi(\bm\theta)} = \prod_{p=1}^{P}
+  e^{-i\theta_{p,2} H_{\rm even}}\, e^{-i\theta_{p,1} H_{\rm odd}}
+  \ket{\psi_0},
+  \qquad
+  \ket{\psi_0} = \bigotimes_{(a,b)\in B_{\rm odd}}
+  \frac{\ket{01}-\ket{10}}{\sqrt 2},
+  \label{eq:hva}
+\end{equation}
+has three properties that matter.
+
+\emph{(i) It is exact, not Trotterised.} Because the bonds within a layer are
+disjoint, $e^{-i\theta H_{\rm odd}}$ factorises \emph{exactly} into two-site
+gates. There is no Trotter error to disentangle from the variational error.
+
+\emph{(ii) The two-site gate is elementary.} $\ssig_a\cdot\ssig_b$ has
+eigenvalue $+1$ on the triplet and $-3$ on the singlet, i.e.\ it is the
+identity on $\{\ket{00},\ket{11}\}$ and $-\mathbb{1}+2X$ on
+$\{\ket{01},\ket{10}\}$. Hence
+\begin{equation}
+  e^{-i\theta\,\ssig_a\cdot\ssig_b} =
+  \begin{cases}
+    e^{-i\theta} & \text{on } \ket{00},\ket{11},\\[2pt]
+    e^{+i\theta}\big(\cos 2\theta\,\mathbb{1} - i \sin 2\theta\, X\big)
+      & \text{on } \ket{01},\ket{10}.
+  \end{cases}
+  \label{eq:gate}
+\end{equation}
+Exploiting this block structure instead of a generic $4\times4$ contraction is
+what makes $L=16$ run in seconds. In circuit form, since $XX$, $YY$ and $ZZ$
+commute pairwise on a given pair,
+\begin{equation}
+  e^{-i\theta(XX+YY+ZZ)} = R_{XX}(2\theta)\,R_{YY}(2\theta)\,R_{ZZ}(2\theta),
+\end{equation}
+which is the decomposition used for the Qiskit circuits.
+
+\emph{(iii) It cannot leave the right symmetry sector.} Every gate
+$e^{-i\theta\ssig\cdot\ssig}$ is an $SU(2)$ scalar and the reference state is a
+product of singlets, so the whole ansatz stays inside the total-singlet,
+$S^z=0$ sector --- exactly where the antiferromagnetic ground state lives.
+The variational search therefore never wastes expressivity on states that are
+orthogonal to the target by symmetry. This is the main reason the ansatz is
+usable at $16$ qubits with only $2P$ parameters.
+
+\subsection{Gradients}
+
+For a sub-layer $U_k = e^{-i\theta_k H_k}$ with $H_k$ a sum of disjoint terms,
+$\partial_{\theta_k} U_k = -i H_k U_k$, hence
+\begin{equation}
+  \frac{\partial E}{\partial \theta_k}
+  = 2\,\mathrm{Re}\,\bra{\lambda}(-i H_k)\ket{\psi_{k+1}},
+  \qquad
+  \ket{\lambda} = \Big(\textstyle\prod_{j>k} U_j\Big)^{\dagger} H \ket{\psi},
+  \label{eq:adjoint}
+\end{equation}
+with $\ket{\psi_{k+1}}$ the state after sub-layer $k$. Reverse-mode (adjoint)
+accumulation gives the full gradient for the cost of about two forward passes,
+against $2\times$(number of parameters) for finite differences. Measured
+agreement between the two: $\le 3\times10^{-9}$ at $L=16$; measured speed-up at
+$L=16$, $P=8$: $\times 8$. A word on parameter-shift rules, because the
+natural guess is wrong in both directions. The \emph{naive} $\pi/2$-shift rule
+does not apply to \eqref{eq:gate} --- $\ssig\cdot\ssig$ has eigenvalues $+1$
+and $-3$, so the single frequency of $E(\theta)$ is $\Omega=4$, not $2$ --- but
+a rescaled two-term rule,
+$\partial_\theta E = 2[E(\theta+\pi/8)-E(\theta-\pi/8)]$, \emph{is} exact for
+one bond. For a whole sub-layer of $R$ disjoint bonds the frequencies are
+$4,8,\dots,4R$ and an exact rule needs $2R$ evaluations; at $L=8$ the two-term
+rule is then wrong by $2.2$ in absolute terms. Appendix~\ref{app:math}
+(\textsf{B.5}, \textsf{B.6}) derives and checks both statements. That count is
+why the code differentiates by \eqref{eq:adjoint} instead.
+
+\subsection{Results}
+
+\begin{center}\small
+\input{tables/model1_main}
+\end{center}
+
+\begin{figure}[h]\centering
+\includegraphics[width=\textwidth]{figures/model1_error_vs_layers.pdf}
+\caption{Relative error of the HVA against exact diagonalisation.
+\emph{Left:} random initialisation --- exact for $L\le 6$, but stalling near a
+few percent for $L \ge 12$, with extra layers buying nothing. \emph{Right:}
+layerwise warm start, where the $(P{+}1)$-layer circuit is initialised from the
+converged $P$-layer solution plus a near-identity layer. The stall is a local
+minimum of the optimiser, not a limitation of the ansatz.}
+\end{figure}
+
+The single most useful observation of this section is the difference between
+the two panels. With random initialisation the error curve flattens at
+$\sim 2\times10^{-2}$ for $L=12$ and $16$ and is insensitive to $P$ --- the
+signature of a local minimum, not of an inexpressive ansatz. Growing the
+circuit one layer at a time, each time starting from the previous optimum with
+$\theta_{\rm new}\approx 0$, improves $L=8$ from $1.7\times 10^{-3}$ to
+$1.3\times 10^{-6}$ and $L=12$ by an order of magnitude. This is the discrete
+analogue of adiabatic state preparation and costs nothing extra.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.46\textwidth]{figures/model1_finite_size.pdf}
+\caption{Finite-size scaling of the exact ground-state energy per site against
+$1/L^2$, compared with the Bethe-ansatz value $1-4\ln 2$. A two-parameter fit
+on five sizes lands within $3\times10^{-3}$; the residual is expected, since
+the critical chain carries logarithmic corrections that a pure $1/L^2$ form
+does not capture.}
+\end{figure}
+
+\noindent The extrapolation gives, with
+$(\text{fit}, \text{Bethe}, |\text{deviation}|) = ($\input{tables/model1_extrap}$)$.
+
+\section{Model 2: the Haldane--Shastry chain}
+
+\subsection{The Hamiltonian as written is the textbook one}
+
+With $z_j = e^{2\pi i j/L}$ on the unit circle,
+\begin{align}
+  |z_j - z_k|^2
+  &= \Big| e^{2\pi i j/L} - e^{2\pi i k/L} \Big|^2
+   = \Big| e^{\pi i (j+k)/L} \Big|^2
+     \Big| e^{\pi i (j-k)/L} - e^{-\pi i (j-k)/L} \Big|^2 \nonumber\\[2pt]
+  &= \Big| 2 i \sin\!\big(\pi (j-k)/L\big) \Big|^2
+   = 4 \sin^2\!\Big(\frac{\pi (j-k)}{L}\Big).
+  \label{eq:sinid}
+\end{align}
+Substituting \eqref{eq:sinid} and $\ssig_j\cdot\ssig_k = 4\bm S_j\cdot\bm S_k$
+into the definition, the two factors of $4$ cancel:
+\begin{equation}
+  H_{\rm HS}
+  = \frac{\pi^2 J}{L^2}\sum_{j<k}
+    \frac{\ssig_j\cdot\ssig_k}{|z_j-z_k|^2}
+  = J\left(\frac{\pi}{L}\right)^{\!2}
+    \sum_{j<k} \frac{\bm S_j \cdot \bm S_k}{\sin^2\!\big(\pi (j-k)/L\big)} .
+  \label{eq:hsstd}
+\end{equation}
+The right-hand side is the Haldane--Shastry chain in its standard
+normalisation. The geometric dressing in the problem statement is therefore
+cosmetic --- but only once \eqref{eq:sinid} is in hand, and
+\eqref{eq:sinid} is checked numerically operator-by-operator (last column but
+two of the table below) rather than asserted.
+
+\subsection{Closed-form energy, and the exact ground state}
+
+Given \eqref{eq:hsstd}, the known Haldane--Shastry ground-state energy applies
+verbatim,
+\begin{equation}
+  E_0 = -\frac{\pi^2 J}{24}\left( L + \frac{5}{L} \right),
+  \qquad \frac{E_0}{L} \xrightarrow[L\to\infty]{} -\frac{\pi^2}{24}
+  = -0.4112335 ,
+  \label{eq:hsE}
+\end{equation}
+and the ground state is the Gutzwiller--Jastrow wavefunction. In the
+$S^z=0$ sector, with down spins at sites $n_1 < \dots < n_M$, $M = L/2$,
+\begin{equation}
+  \psi_{\rm J}(n_1,\dots,n_M) \;\propto\;
+  \prod_{i=1}^{M} z_{n_i} \prod_{i<j} \big( z_{n_i} - z_{n_j} \big)^2 .
+  \label{eq:jastrow}
+\end{equation}
+Both \eqref{eq:hsE} and \eqref{eq:jastrow} are \emph{verified, not assumed}:
+
+\begin{center}\small
+\input{tables/model2_main}
+\end{center}
+
+The closed-form energy agrees with exact diagonalisation to
+$\sim10^{-15}$ at every $L$; the state \eqref{eq:jastrow} has eigenvector
+residual $\|H\psi - E\psi\| \sim 10^{-15}$ and overlap with the numerical
+ground state equal to $1$ to twelve digits. The momentum factor
+$\prod_i z_{n_i}$ matters: without it the Jastrow form is still an exact
+eigenvector, but of an excited state --- its overlap with the ground state is
+zero. That is the kind of detail that is invisible analytically and obvious
+numerically, which is why both were run.
+
+\begin{figure}[h]\centering
+\includegraphics[width=\textwidth]{figures/model2_verification.pdf}
+\caption{\emph{Left:} the three independent checks --- the geometric identity,
+the closed-form energy and the Jastrow eigenvector residual --- all sitting at
+machine precision. \emph{Right:} $E_0/L$ against $1/L^2$, following
+\eqref{eq:hsE} exactly, with no fitting.}
+\end{figure}
+
+\subsection{So what should a VQE do here?}
+
+Nothing, and saying so is the point. Model 2 has a zero-parameter exact
+ansatz. Running a variational circuit on it would produce a controlled
+approximation to a quantity already known in closed form, and the only honest
+uses of \eqref{eq:jastrow} in a variational setting are:
+
+\begin{itemize}\itemsep2pt
+\item as a \textbf{warm start} --- prepare $\psi_{\rm J}$ and use it as the
+  reference state of a short HVA built from the long-range bonds, so that the
+  circuit only has to represent corrections. Applied to a perturbed
+  Hamiltonian (e.g.\ $1/r^2 \to 1/r^{2+\epsilon}$, which destroys
+  integrability) this is a genuinely useful construction, and it is the reason
+  the exact solution is worth having.
+\item as a \textbf{benchmark of a generic ansatz}: the nearest-neighbour HVA
+  of \eqref{eq:hva} applied to the all-to-all $H_{\rm HS}$ is a legitimate test
+  of what happens when the ansatz structure does not match the interaction
+  graph --- the opposite regime from Model 1.
+\end{itemize}
+
+The practical cost also changes: $H_{\rm HS}$ has $3\binom{L}{2}$ Pauli terms
+against $3L$ for the XXX chain ($84$ versus $24$ at $L=8$, from the run log),
+so even measuring the energy is a different problem.
+
+\section{Model 3: the SYK model}
+
+\subsection{Jordan--Wigner mapping}
+
+With $N$ Majoranas and $n = N/2$ qubits, take
+\begin{equation}
+  \chi_{2k} = \Big(\prod_{j<k} Z_j\Big) X_k,
+  \qquad
+  \chi_{2k+1} = \Big(\prod_{j<k} Z_j\Big) Y_k,
+  \qquad k = 0,\dots,n-1 .
+  \label{eq:jw}
+\end{equation}
+The algebra $\{\chi_a,\chi_b\} = 2\delta_{ab}$ follows from two observations:
+on the same qubit, $\{X_k,Y_k\}=0$ and $X_k^2=Y_k^2=\mathbb{1}$; on different
+qubits $k<l$, the string of $\chi$ with the larger index contains $Z_k$, and
+$Z_k$ anticommutes with $X_k$ and $Y_k$, so the two operators anticommute.
+This is verified numerically for $N = 4,\dots,12$ by explicit matrix
+construction.
+
+Because each $\chi_a$ is a single Pauli string, so is every quartic term:
+$\chi_i\chi_j\chi_k\chi_l$ is one Pauli string times a phase in
+$\{\pm1,\pm i\}$. Also, reversing a product of four distinct anticommuting
+factors costs $(-1)^{\binom{4}{2}} = +1$, so each term is Hermitian and $H$
+is Hermitian for real couplings, as required. With $J_{ijkl}$ totally
+antisymmetric the $1/4!$ of the problem statement exactly cancels the $4!$
+orderings, so
+\begin{equation}
+  H_{\rm SYK} = \sum_{i<j<k<l} J_{ijkl}\, \chi_i\chi_j\chi_k\chi_l ,
+  \qquad
+  \overline{J_{ijkl}} = 0,
+  \quad \overline{J^2_{ijkl}} = \frac{6J^2}{N^3} .
+\end{equation}
+
+\subsection{Four obstructions, measured}
+
+\begin{center}\small
+\input{tables/model3_counting}
+\end{center}
+
+\paragraph{(a) Term count.} $H$ is a sum of exactly $\binom{N}{4}$ Pauli
+strings: $495$ at $N=12$, $1820$ at $N=16$, $10\,626$ at $N=24$,
+$35\,960$ at $N=32$ --- growing as $N^4/24$ while the Hilbert space grows as
+$2^{N/2}$. For a fixed target precision $\epsilon$ the shot budget scales like
+(sum of $|{\rm coefficients}|$)$^2/\epsilon^2$, so this is the obstruction that
+bites first in practice.
+
+Grouping helps, and the measured numbers say \emph{how much}: a greedy
+(Welsh--Powell) colouring of the non-commutation graph packs the $1820$ strings
+at $N=16$ into $167$ general-commuting groups but only $549$ qubit-wise
+commuting ones. General commutation is therefore worth roughly a further
+factor of three over the naive qubit-wise grouping, at the price of a Clifford
+basis change per group.
+
+\paragraph{(b) The terms are global.} The Jordan--Wigner strings make the mean
+Pauli weight $5.1$ out of $8$ qubits at $N=16$, i.e.\ $O(n)$ rather than
+$O(1)$. There is no locality to exploit: no light-cone argument, no local
+cost-function trick, and every term must be measured on essentially the whole
+register.
+
+\paragraph{(c) The ground state is volume-law entangled.} This is the
+obstruction that matters, and the one that cannot be optimised away.
+
+\begin{center}\small
+\input{tables/model3_ed}
+\end{center}
+
+\begin{figure}[h]\centering
+\includegraphics[width=\textwidth]{figures/model3_obstructions.pdf}
+\caption{(a) Pauli-string count versus number of simultaneously measurable
+groups. (b) Half-cut entanglement entropy: the SYK ground state sits at
+$76$--$93\%$ of the maximal value $\tfrac{n}{2}\ln 2$ and grows linearly in
+$n$, whereas the XXX ground state grows logarithmically. (c) Variance of
+$\partial E/\partial\theta_0$ at random initialisation, falling by a factor
+$\sim\!2.6$ between $n=4$ and $n=8$: consistent with exponential decay, but
+over too narrow a range to fit a slope one should believe (the dashed line is a
+guide to the eye).}
+\end{figure}
+
+The measured half-cut entropy of the SYK ground state is $76$--$93\%$ of the
+maximum $\tfrac{n}{2}\ln 2$ and grows \emph{linearly} in $n$; the XXX ground
+state, by contrast, grows logarithmically. A circuit of depth $d$ with local
+gates can only generate entanglement $O(d)$ across a cut, so reproducing a
+near-maximally entangled state requires depth growing with $n$ --- not a
+constant-depth, hardware-efficient ansatz. This is an expressivity statement,
+independent of the optimiser, and it is why "add more layers" is not the
+answer.
+
+Two side observations from the same runs. The disorder fluctuation
+$\sigma(E_0)/N$ falls from $2.4\times10^{-2}$ at $N=8$ to
+$1.3\times10^{-3}$ at $N=20$ --- the model self-averages, so a handful of
+realisations suffices and the error bars in the table are small on purpose, not
+by luck. And the ground-state degeneracy alternates: in the range studied it is
+$1$ for $N \equiv 0 \pmod 8$ ($N=8,16$) and $2$ otherwise, which is the known
+dependence of the SYK spectrum on $N \bmod 8$ through the particle-hole
+symmetry. It matters practically, because a VQE run over a degenerate ground
+space converges to an arbitrary member of it, and comparing states rather than
+energies then becomes meaningless.
+
+\paragraph{(d) Flat gradients.}
+
+\begin{center}\small
+\input{tables/model3_bp}
+\end{center}
+
+The variance of a single energy derivative at random initialisation falls by a
+factor $\sim\!2.6$ between $n=4$ and $n=8$. That is consistent with the
+exponential decay expected of a barren plateau, but five points over four
+qubits is too narrow a range to fit an exponent that anyone should believe, and
+I would rather say so than quote a slope. The honest statement is that the
+gradients are already small and getting smaller, and that this compounds with
+the absence of any structure in the all-to-all random couplings for the
+optimiser to follow.
+
+\paragraph{(e) The ground state is complex, and the standard ansatz is not.}
+
+This one is not in the usual list, and it turned out to matter more than (d).
+The measured relative error of the textbook RY\,+\,CZ hardware-efficient
+ansatz is \emph{identical to six digits} across the whole depth sweep $P=2,4,8$ --- $41.7\%$ at
+$N=8$, $54.2\%$ at $N=10$ --- which is not what a barren plateau looks like.
+It is what a representability failure looks like:
+
+\begin{center}\small
+\input{tables/model3_naive}
+\end{center}
+
+RY and CZ generate only real amplitudes. Measuring how complex the SYK ground
+state actually is --- the residual norm of $\mathrm{Im}\,e^{-i\varphi}\psi_0$
+after minimising over the global phase --- gives $0.49$ at $N=8$ and $0.66$ at
+$N=10$, i.e.\ the state is about as far from real as a state can be. The
+real-amplitude ansatz therefore saturates at the best real approximation, and
+no depth can help. Before blaming the optimiser it is worth checking whether
+the ansatz can represent the target at all; here it cannot, and that accounts
+for essentially all of the $40$--$50\%$: simply adding one $R_Z$ per qubit per
+layer makes the same brickwork \emph{exact} at $N=8$ and $N=10$.
+
+That last observation also bounds what obstructions (c) and (d) can be blamed
+for at these sizes. With $n=4$ or $5$ qubits the Hilbert space has $16$ or $32$
+dimensions and a $40$-parameter circuit can cover it, so the binding constraint
+in the range we can diagonalise is \emph{reality}, not entanglement. The
+volume-law argument is an asymptotic statement about what a constant-depth
+ansatz can do as $n$ grows; it is the reason not to expect the complex
+brickwork to keep winning, not an explanation of the failure observed at
+$N=8$. Keeping those two apart is the whole point of measuring them
+separately.
+
+\subsection{What I did about it: ADAPT-VQE}
+\label{sec:adapt}
+
+Rather than assert that an adaptive ansatz would do better, it is implemented.
+The operator pool is the Hamiltonian's own quartic terms
+$P_m = \chi_i\chi_j\chi_k\chi_l$, each a single Pauli string with $P_m^2=1$, so
+\begin{equation}
+  e^{-i\theta P_m} = \cos\theta\,\mathbb{1} - i\sin\theta\,P_m
+\end{equation}
+costs two sparse matrix--vector products. The operator added at each step is
+the one with the largest
+\begin{equation}
+  \left.\frac{\partial E}{\partial \theta}\right|_{\theta=0}
+  = \bra{\psi} i\,[P_m, H] \ket{\psi}
+  = -2\,\mathrm{Im}\ip{P_m\psi}{H\psi},
+\end{equation}
+and it enters at $\theta=0$, so the growth is a warm start by construction ---
+the same mechanism that gained an order of magnitude in Model 1.
+
+\begin{center}\small
+\input{tables/model3b}
+\end{center}
+
+The result is a negative one, and it is the most useful thing in this section.
+
+\emph{ADAPT does not beat the complex brickwork at these sizes.} With a fixed
+budget of $6n$ operators it reaches $12.1\%$ at $N=12$ against the brickwork's
+$8.5\%$, and $27.1\%$ against $19.4\%$ at $N=14$. It is enormously better than
+the \emph{real} brickwork, but that comparison flatters it, because the real
+brickwork is failing for a trivial reason. Against an ansatz that can at least
+represent a complex state, an adaptive construction with a Hamiltonian-derived
+pool buys nothing here. I would rather report that than tune the budget until
+the ordering flips.
+
+\emph{What the sweep does show cleanly is where the expressivity wall is.} The
+complex brickwork is \emph{exact} at $n=4$ and $n=5$, then degrades to $8.5\%$
+at $n=6$ and $19.4\%$ at $n=7$, at fixed depth $P=4$. That is the onset
+predicted by (c): as soon as the Hilbert space is larger than the circuit can
+cover, a constant-depth ansatz starts losing ground, and it loses it fast. The
+real brickwork, by contrast, sits at $41$--$54\%$ at \emph{every} size and
+every depth, which is the signature of a constraint that has nothing to do with
+system size at all. Two different failure modes, cleanly separated by having
+measured both.
+
+\emph{One instance-specific curiosity, reported because it cost me an hour.} At
+$N=8$, ADAPT started from a real product reference stalls after a single
+operator, at a point where every pool gradient vanishes to machine precision
+($\sim10^{-16}$) --- the construction is trapped in the real subspace and the
+pool, which generates the trap, cannot select its way out. A complex reference
+(one $R_Z$ per qubit) unblocks it immediately. At $N=10,12,14$ the same real
+reference does \emph{not} stall, so this is a property of that instance rather
+than a general obstruction. It is worth knowing mostly as a diagnostic: a run
+that dies after one operator with zero gradients is a symmetry, not a barren
+plateau, and the fix is the reference state, not the optimiser.
+
+\subsection{What I would do with more time}
+\label{sec:more}
+
+Ranked by what the measurements above support:
+
+\begin{enumerate}\itemsep3pt
+\item \textbf{Fix the ansatz before anything else.} Use a complex-capable
+  circuit, and check the reference state. Those two changes take minutes and
+  account for the entire difference between a $50\%$ error and an $8.5\%$ one
+  at $N=12$; everything else in this list is a refinement on top.
+\item \textbf{If keeping ADAPT, enlarge the pool beyond the Hamiltonian's own
+  terms.} The $N=8$ stall shows that a pool sharing a symmetry with the
+  reference cannot escape it, and the $N=12,14$ numbers show that a pool of
+  quartic terms alone is not enough to beat a generic circuit.
+\item \textbf{Measurement reduction.} General-commuting grouping
+  ($167$ groups instead of $1820$ terms at $N=16$), then classical shadows,
+  whose sample complexity depends on observable weight rather than term count
+  and is therefore the natural tool for the global operators of (b).
+\item \textbf{Warm start from a solvable neighbour} --- the free-fermion
+  ($q=2$) Majorana model, whose ground state is Gaussian and preparable exactly
+  in $O(n^2)$ gates. This is the only idea here that attacks (c) rather than
+  working around it, because it builds the entanglement gradually instead of
+  hoping to find it. \emph{It is implemented in Section~\ref{sec:warm}, and it
+  is the strategy that works}: the same ADAPT pool and budget that gave
+  $3$--$4\%$ from a product state reach the exact ground state at $N=10$ when
+  started from the Gaussian state.
+\item \textbf{Report the error curve, not the energy.} With $2^{N/2}=1024$ at
+  $N=20$, exact diagonalisation is available far beyond where the VQE is
+  useful, so the honest deliverable at these sizes is the gap between them.
+\end{enumerate}
+
+I would not claim that any of this makes SYK a good VQE target at accessible
+$N$. It is a good \emph{stress test} precisely because it violates every
+assumption --- locality, sparsity, low entanglement, reality --- that makes
+Models 1 and 2 work.
+
+\section{Software validation}\label{sec:soft}
+
+The fast in-house state-vector engine (block-structured gate
+\eqref{eq:gate}, adjoint gradients) is what makes $L=16$ affordable; Qiskit is
+used to prove that it implements the intended circuit. At random parameters,
+the two agree on the energy to $\sim5\times10^{-15}$ and on the state to
+twelve digits, after accounting for the endianness reversal. The transpiled
+circuit metrics below are what one would actually pay on hardware.
+
+\begin{center}\small
+\input{tables/qiskit_check}
+\end{center}
+
+\noindent Other checks performed: analytic gradient against central finite
+differences ($\le 3\times10^{-9}$); $S^z=0$ sector against the full Hilbert
+space for $L\le12$; the geometric form of $H_{\rm HS}$ against the
+$\sin^2$ form, operator-by-operator; Hermiticity of every Hamiltonian;
+$\{\chi_a,\chi_b\}=2\delta_{ab}$ by explicit matrices.
+
+\section{Sampling cost, measured}
+\label{sec:shots}
+
+Every energy elsewhere in this report is an exact expectation value on the
+state vector. That is deliberate --- the questions ask for the \emph{variational}
+error, and shot noise would confound the two --- but it leaves the measurement
+cost unquantified, which for a VQE is half the problem. So it is measured.
+
+The estimator packs the Pauli strings into qubit-wise-commuting groups, rotates
+each qubit into the basis its group requires, and draws bitstrings from
+$|\psi|^2$; every member of a group is then estimated from the \emph{same}
+shots, with their true correlations rather than an independence assumption.
+It is verified unbiased against the exact value (\textsf{D.12}). The variance
+scales as $1/M_g$, so the shots needed for a target precision follow from one
+measurement at a known $M_g$.
+
+\begin{center}\small
+\input{tables/model4_shots}
+\end{center}
+
+Three things are worth reading off this table.
+
+The ordering is \emph{not} the ordering of term counts. The XXX chain has the
+fewest Pauli strings ($24$) and needs the most shots, because what enters the
+budget is $\|c\|_1 = 24$, not the number of terms; Haldane--Shastry has three
+and a half times as many strings but a coefficient norm of $9.7$, spread over
+rapidly decaying $1/\sin^2$ couplings, and costs thirty times less.
+
+Grouping pays where the structure allows it. Both spin chains collapse to
+\textbf{three} qubit-wise-commuting groups --- all the $XX$ terms, all the $YY$,
+all the $ZZ$ --- independently of $L$. The SYK model, whose strings are
+essentially random, needs $41$ groups at $N=8$ and $196$ at $N=12$, and that
+gap is exactly the price of having no structure to exploit.
+
+And the absolute numbers are sobering: $\sim\!10^8$ shots for a single energy
+evaluation of SYK at $N=12$ to $10^{-3}$, before any optimisation iteration.
+Multiplied by the hundreds of iterations an optimiser needs, this --- not the
+circuit depth --- is what makes the model hard in practice at accessible sizes.
+
+\section{A Gaussian warm start, and the best result for SYK}
+\label{sec:warm}
+
+Of the strategies listed in Section~\ref{sec:more}, the $q=2$ warm start is
+the cheapest to implement and turns out to be the only one that actually
+works. It is therefore implemented rather than recommended.
+
+The free-fermion Majorana model
+\begin{equation}
+  H_{q=2} = \frac{i}{2}\sum_{i<j} K_{ij}\,\chi_i\chi_j ,
+  \qquad K \text{ real antisymmetric},
+\end{equation}
+is quadratic, so its ground state is Gaussian and preparable exactly on
+hardware by an $O(n^2)$ network of Givens rotations. The explicit factor of $i$
+is required here and not for the quartic terms: reversing a product of $q$
+distinct anticommuting Majoranas costs $(-1)^{\binom q2}$, which is $+1$ for
+$q=4$ but $-1$ for $q=2$ (\textsf{D.4}). Two uses were tested: as the reference
+state of ADAPT, and as the $s=0$ end of the interpolation
+$H(s) = (1-s)H_{q=2} + s\,H_{\rm SYK}$ with the complex brickwork re-optimised
+along $s = 0, 0.25, 0.5, 0.75, 1$.
+
+\begin{center}\small
+\input{tables/model4_warmstart}
+\end{center}
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.56\textwidth]{figures/model4_strategies.pdf}
+\caption{Every strategy tried on the SYK model, on one axis. The real-amplitude
+brickwork (navy) is flat at $40$--$55\%$ because it cannot represent a complex
+state at all. Allowing complex amplitudes (red) is exact at $n=4,5$ and then
+degrades as the Hilbert space outgrows the circuit. ADAPT from a product state
+(teal) is no better. ADAPT from the Gaussian $q=2$ ground state (gold) is exact
+at $N=10$ and $0.13\%$ at $N=12$, and the advantage erodes by $N=14$.}
+\end{figure}
+
+Three readings, and the third is the one that matters most.
+
+\emph{Overlap is not the mechanism.} The Gaussian state is a poor
+approximation to the SYK ground state --- overlap $0.43$ at $N=10$, and only
+$0.07$ at $N=12$ and $0.09$ at $N=14$. It belongs to a different model. What it
+supplies is a starting point with the \emph{right kind} of correlations: a
+fermionic Gaussian state already carries extensive entanglement, so the circuit
+has to build corrections rather than build everything from a product state.
+The size at which the overlap is smallest, $N=12$, is the size at which the
+warm start helps most.
+
+\emph{Used as the ADAPT reference it is decisive, at $N=12$ spectacularly so.}
+The same pool, the same operator budget and the same optimiser that gave
+$12.1\%$ from a product state give $0.13\%$ from the Gaussian state --- a factor
+of $65$ --- and reach the exact ground state at $N=10$. This is the honest
+resolution of the negative result of Section~\ref{sec:adapt}: ADAPT with a
+Hamiltonian-derived pool was not the problem; starting it from a product state
+was.
+
+\emph{And the advantage erodes by $N=14$}, where ADAPT from the Gaussian state
+gives $18.7\%$ against the cold brickwork's $19.4\%$ --- better, but no longer
+by a distance. That is worth stating plainly rather than stopping at $N=12$.
+The likely cause is the fixed operator budget of $6n$, which grows linearly
+while the entanglement it has to represent grows linearly \emph{in the exponent};
+the warm start buys a constant factor, not a change of scaling. Testing that
+would mean growing the budget with $n$ and watching where the curves cross,
+which is the obvious next run and is not in here.
+
+The practical conclusion of the whole SYK section, which took three attempts to
+find, is an ordering: \emph{fix the reference state before touching the ansatz,
+and fix the ansatz before touching the optimiser.} Taken in the other order,
+all one learns is that the optimiser has a hard time --- which is true, and
+useless.
+
+\section{Limitations}
+
+Stated plainly, because they are the parts I would want to be asked about.
+The $1/L^2$ extrapolation of Model 1 ignores the logarithmic corrections of the
+critical chain, which is why it misses Bethe by $3\times10^{-3}$ rather than
+by the fit error. The $L=16$ HVA runs use fewer restarts than the smaller
+sizes, so the reported errors there are upper bounds, and the $L=16$ warm-start
+ladder is the single most expensive computation here. The SYK exact
+diagonalisation averages over $5$--$20$ disorder realisations, enough given the
+measured self-averaging but not enough for tail statistics. The ADAPT runs use a pool truncated to the
+largest-coefficient terms and a fixed operator budget of $6n$, so the reported
+errors are again upper bounds; with a larger budget the numbers can only
+improve. The shot-noise study of Section~\ref{sec:shots} uses a single
+reference state per model (the exact ground state), so the variances quoted are
+representative rather than worst case over the optimisation trajectory. The
+$q=2$ warm start is tested on one disorder realisation per size and one choice
+of $K_{ij}$ scaling; the $N=10$ result is exact and the trend is clear, but the
+sample is small. And the optimiser throughout is L-BFGS-B or Powell on a
+noiseless landscape --- a real device would need something noise-aware
+(SPSA, or a surrogate model), which would change the iteration counts but none
+of the conclusions about expressivity.
+
+\vspace{0.4em}
+\hrule
+\vspace{0.4em}
+\noindent\small
+\textbf{Code.} \texttt{spinvqe/} contains the library
+(\texttt{core.py} Hamiltonians and exact diagonalisation, \texttt{ansatz.py}
+circuits and adjoint gradients, \texttt{vqe.py} the optimiser,
+\texttt{syk.py} the Majorana mapping and Pauli bookkeeping,
+\texttt{qiskit\_interface.py} the Qiskit export and cross-check).
+\texttt{run\_model1.py}, \texttt{run\_model1\_warmstart.py},
+\texttt{run\_model2.py}, \texttt{run\_model3.py} reproduce every number;
+\texttt{make\_tables.py} and \texttt{make\_figures.py} regenerate the tables
+and figures in this document from the JSON outputs in \texttt{results/}.
+
+\input{appendix}
+
+\end{document}

@@ -1,0 +1,382 @@
+{
+  "n_checks": 47,
+  "n_passed": 47,
+  "checks": [
+    {
+      "eq": "A.1",
+      "name": "sigma_i.sigma_j = 4 S_i.S_j",
+      "error": 0.0,
+      "tol": 1e-13,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "A.2",
+      "name": "spec(sigma.sigma) = {-3, 1, 1, 1}",
+      "error": 0.0,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "A.3",
+      "name": "swap = (1 + sigma.sigma)/2",
+      "error": 0.0,
+      "tol": 1e-13,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "A.4",
+      "name": "[XX,YY] = [YY,ZZ] = [XX,ZZ] = 0",
+      "error": 0.0,
+      "tol": 1e-13,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "A.5",
+      "name": "exchange gate = RXX(2t) RYY(2t) RZZ(2t)",
+      "error": 2.482534153247273e-16,
+      "tol": 1e-13,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "A.6",
+      "name": "block form of exp(-i t sigma.sigma)",
+      "error": 1.3690034978522986e-16,
+      "tol": 1e-13,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "B.1",
+      "name": "sigma.sigma |singlet> = -3 |singlet>",
+      "error": 0.0,
+      "tol": 1e-13,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "B.2",
+      "name": "HVA state has no weight outside S^z = 0",
+      "error": 0.0,
+      "tol": 1e-13,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "B.3",
+      "name": "S^2_tot |psi_HVA> = 0 (total singlet)",
+      "error": 1.3820505026364185e-15,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "B.4",
+      "name": "adjoint gradient = finite differences",
+      "error": 1.3322651870595337e-09,
+      "tol": 1e-06,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "B.5",
+      "name": "two-term shift rule (Omega=4) for one bond",
+      "error": 3.0676261530970805e-10,
+      "tol": 1e-06,
+      "passed": true,
+      "note": "shift pi/8, prefactor 2"
+    },
+    {
+      "eq": "B.6a",
+      "name": "two-term rule FAILS for an R=4 sub-layer (error is large)",
+      "error": 0.0,
+      "tol": 0.5,
+      "passed": true,
+      "note": "observed error 2.17e+00"
+    },
+    {
+      "eq": "B.6b",
+      "name": "2R-term rule is exact for the same sub-layer",
+      "error": 1.394113269270747e-09,
+      "tol": 1e-06,
+      "passed": true,
+      "note": "frequencies 4,8,12,16"
+    },
+    {
+      "eq": "C.1",
+      "name": "|z_j - z_k|^2 = 4 sin^2(pi(j-k)/L)   [L=6]",
+      "error": 1.1102230246251565e-15,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.1",
+      "name": "|z_j - z_k|^2 = 4 sin^2(pi(j-k)/L)   [L=8]",
+      "error": 8.881784197001252e-16,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.1",
+      "name": "|z_j - z_k|^2 = 4 sin^2(pi(j-k)/L)   [L=12]",
+      "error": 1.3322676295501878e-15,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.2",
+      "name": "H(assignment) = J (pi/L)^2 sum S_j.S_k / sin^2",
+      "error": 0.0,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.3",
+      "name": "E_0 = -(pi^2/24)(L + 5/L)   [L=4]",
+      "error": 4.440892098500626e-16,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.3",
+      "name": "E_0 = -(pi^2/24)(L + 5/L)   [L=6]",
+      "error": 1.3322676295501878e-15,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.3",
+      "name": "E_0 = -(pi^2/24)(L + 5/L)   [L=8]",
+      "error": 1.3322676295501878e-15,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.3",
+      "name": "E_0 = -(pi^2/24)(L + 5/L)   [L=10]",
+      "error": 3.552713678800501e-15,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.3",
+      "name": "E_0 = -(pi^2/24)(L + 5/L)   [L=12]",
+      "error": 8.881784197001252e-15,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.4",
+      "name": "Jastrow x prod z is an eigenvector   [L=6]",
+      "error": 1.8398848503432284e-15,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.5",
+      "name": "... and it is the ground state, |<.|.>| = 1   [L=6]",
+      "error": 4.440892098500626e-16,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.6",
+      "name": "without prod z: orthogonal to the ground state  [L=6]",
+      "error": 6.315288719006095e-16,
+      "tol": 1e-09,
+      "passed": true,
+      "note": "an excited eigenvector"
+    },
+    {
+      "eq": "C.4",
+      "name": "Jastrow x prod z is an eigenvector   [L=8]",
+      "error": 1.1280499786014077e-15,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.5",
+      "name": "... and it is the ground state, |<.|.>| = 1   [L=8]",
+      "error": 8.881784197001252e-16,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.6",
+      "name": "without prod z: orthogonal to the ground state  [L=8]",
+      "error": 5.030106301588194e-16,
+      "tol": 1e-09,
+      "passed": true,
+      "note": "an excited eigenvector"
+    },
+    {
+      "eq": "C.4",
+      "name": "Jastrow x prod z is an eigenvector   [L=10]",
+      "error": 2.2459425025458797e-15,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.5",
+      "name": "... and it is the ground state, |<.|.>| = 1   [L=10]",
+      "error": 0.0,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "C.6",
+      "name": "without prod z: orthogonal to the ground state  [L=10]",
+      "error": 1.0492997210706408e-15,
+      "tol": 1e-09,
+      "passed": true,
+      "note": "an excited eigenvector"
+    },
+    {
+      "eq": "D.1",
+      "name": "chi_a^2 = 1   [N=6]",
+      "error": 0.0,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.2",
+      "name": "{chi_a, chi_b} = 0 for a != b   [N=6]",
+      "error": 0.0,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.1",
+      "name": "chi_a^2 = 1   [N=8]",
+      "error": 0.0,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.2",
+      "name": "{chi_a, chi_b} = 0 for a != b   [N=8]",
+      "error": 0.0,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.1",
+      "name": "chi_a^2 = 1   [N=10]",
+      "error": 0.0,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.2",
+      "name": "{chi_a, chi_b} = 0 for a != b   [N=10]",
+      "error": 0.0,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.3",
+      "name": "chi_i chi_j chi_k chi_l is one Pauli string",
+      "error": 0.0,
+      "tol": 1e-13,
+      "passed": true,
+      "note": "string ZZIII, phase -1+0j"
+    },
+    {
+      "eq": "D.4",
+      "name": "(chi_i chi_j chi_k chi_l)^dagger = itself  [(-1)^6 = +1]",
+      "error": 0.0,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.5",
+      "name": "H_SYK is Hermitian and traceless",
+      "error": 1.1188630228279524e-16,
+      "tol": 1e-10,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.6",
+      "name": "number of Pauli strings = C(10,4) = 210",
+      "error": 0.0,
+      "tol": 0.5,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.7",
+      "name": "commute(a,b) predicate matches [A,B] = 0",
+      "error": 0.0,
+      "tol": 1e-10,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.8",
+      "name": "exp(-i t P) = cos t - i sin t P",
+      "error": 0.0,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.9",
+      "name": "dE/dtheta|_0 = -2 Im <P psi|H psi>",
+      "error": 1.3741535687117334e-11,
+      "tol": 1e-06,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.10",
+      "name": "H_{q=2} Hermitian",
+      "error": 0.0,
+      "tol": 1e-12,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.11",
+      "name": "H_{q=2} psi_0 = E_0 psi_0",
+      "error": 2.6611016325209883e-15,
+      "tol": 1e-09,
+      "passed": true,
+      "note": ""
+    },
+    {
+      "eq": "D.12",
+      "name": "QWC shot estimator is unbiased",
+      "error": 0.000277048909374189,
+      "tol": 0.006746570422974815,
+      "passed": true,
+      "note": "exact -1.2216, mean -1.2218, sd 0.0107"
+    }
+  ]
+}

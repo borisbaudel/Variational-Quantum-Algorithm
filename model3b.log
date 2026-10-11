@@ -1,0 +1,23 @@
+=== N = 8  (n = 4 qubits)
+    E0 = -1.67479890   degeneracy 1   residual imaginary weight of the ground state: 0.4943
+    RY+CZ      P= 4 ( 20 params): E = -0.976303   rel err =  41.7%
+    RY+CZ      P=12 ( 52 params): E = -0.976303   rel err =  41.7%
+    RY+RZ+CZ   P= 4 ( 40 params): E = -1.674799   rel err =   0.0%
+    RY+RZ+CZ   P=12 (104 params): E = -1.674799   rel err =   0.0%
+    ADAPT-VQE, pool of 70 quartic terms
+    -> ADAPT (real_reference): E = -0.44025929 with 1 operators   rel err =  73.71%   (0.0s)
+        op   1: E = -0.32717484  |grad|max = 9.87e-01
+        op   2: E = -0.60927329  |grad|max = 7.07e-01
+        op   3: E = -0.67475482  |grad|max = 3.87e-01
+        op   4: E = -0.77966881  |grad|max = 5.30e-01
+        op   5: E = -0.98872736  |grad|max = 5.24e-01
+        op  10: E = -1.44344590  |grad|max = 2.94e-01
+        op  15: E = -1.55584683  |grad|max = 1.79e-01
+        op  20: E = -1.59533278  |grad|max = 1.09e-01
+    -> ADAPT (complex_reference): E = -1.60141897 with 24 operators   rel err =   4.38%   (2.8s)
+
+=== N = 10  (n = 5 qubits)
+    E0 = -2.14258296   degeneracy 2   residual imaginary weight of the ground state: 0.6584
+    RY+CZ      P= 4 ( 25 params): E = -0.980644   rel err =  54.2%
+    RY+CZ      P=12 ( 65 params): E = -0.980644   rel err =  54.2%
+    RY+RZ+CZ   P= 4 ( 50 params): E = -2.142478   rel err =   0.0%

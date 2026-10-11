@@ -1,0 +1,53 @@
+\begin{tabular}{l p{10.4cm} r}
+\toprule
+eq. & identity & numerical error \\
+\midrule
+A.1 & sigma\_i.sigma\_j = 4 S\_i.S\_j & 0.0e+00 \\
+A.2 & spec(sigma.sigma) = \{-3, 1, 1, 1\} & 0.0e+00 \\
+A.3 & swap = (1 + sigma.sigma)/2 & 0.0e+00 \\
+A.4 & [XX,YY] = [YY,ZZ] = [XX,ZZ] = 0 & 0.0e+00 \\
+A.5 & exchange gate = RXX(2t) RYY(2t) RZZ(2t) & 2.5e-16 \\
+A.6 & block form of exp(-i t sigma.sigma) & 1.4e-16 \\
+B.1 & sigma.sigma $|$singlet$>$ = -3 $|$singlet$>$ & 0.0e+00 \\
+B.2 & HVA state has no weight outside S\^\{\}z = 0 & 0.0e+00 \\
+B.3 & S\^\{\}2\_tot $|$psi\_HVA$>$ = 0 (total singlet) & 1.4e-15 \\
+B.4 & adjoint gradient = finite differences & 1.3e-09 \\
+B.5 & two-term shift rule (Omega=4) for one bond & 3.1e-10 \\
+B.6a & two-term rule FAILS for an R=4 sub-layer (error is large) & 0.0e+00 \\
+B.6b & 2R-term rule is exact for the same sub-layer & 1.4e-09 \\
+C.1 & $|$z\_j - z\_k$|$\^\{\}2 = 4 sin\^\{\}2(pi(j-k)/L)   [L=6] & 1.1e-15 \\
+C.1 & $|$z\_j - z\_k$|$\^\{\}2 = 4 sin\^\{\}2(pi(j-k)/L)   [L=8] & 8.9e-16 \\
+C.1 & $|$z\_j - z\_k$|$\^\{\}2 = 4 sin\^\{\}2(pi(j-k)/L)   [L=12] & 1.3e-15 \\
+C.2 & H(assignment) = J (pi/L)\^\{\}2 sum S\_j.S\_k / sin\^\{\}2 & 0.0e+00 \\
+C.3 & E\_0 = -(pi\^\{\}2/24)(L + 5/L)   [L=4] & 4.4e-16 \\
+C.3 & E\_0 = -(pi\^\{\}2/24)(L + 5/L)   [L=6] & 1.3e-15 \\
+C.3 & E\_0 = -(pi\^\{\}2/24)(L + 5/L)   [L=8] & 1.3e-15 \\
+C.3 & E\_0 = -(pi\^\{\}2/24)(L + 5/L)   [L=10] & 3.6e-15 \\
+C.3 & E\_0 = -(pi\^\{\}2/24)(L + 5/L)   [L=12] & 8.9e-15 \\
+C.4 & Jastrow x prod z is an eigenvector   [L=6] & 1.8e-15 \\
+C.5 & ... and it is the ground state, $|$$<$.$|$.$>$$|$ = 1   [L=6] & 4.4e-16 \\
+C.6 & without prod z: orthogonal to the ground state  [L=6] & 6.3e-16 \\
+C.4 & Jastrow x prod z is an eigenvector   [L=8] & 1.1e-15 \\
+C.5 & ... and it is the ground state, $|$$<$.$|$.$>$$|$ = 1   [L=8] & 8.9e-16 \\
+C.6 & without prod z: orthogonal to the ground state  [L=8] & 5.0e-16 \\
+C.4 & Jastrow x prod z is an eigenvector   [L=10] & 2.2e-15 \\
+C.5 & ... and it is the ground state, $|$$<$.$|$.$>$$|$ = 1   [L=10] & 0.0e+00 \\
+C.6 & without prod z: orthogonal to the ground state  [L=10] & 1.0e-15 \\
+D.1 & chi\_a\^\{\}2 = 1   [N=6] & 0.0e+00 \\
+D.2 & \{chi\_a, chi\_b\} = 0 for a != b   [N=6] & 0.0e+00 \\
+D.1 & chi\_a\^\{\}2 = 1   [N=8] & 0.0e+00 \\
+D.2 & \{chi\_a, chi\_b\} = 0 for a != b   [N=8] & 0.0e+00 \\
+D.1 & chi\_a\^\{\}2 = 1   [N=10] & 0.0e+00 \\
+D.2 & \{chi\_a, chi\_b\} = 0 for a != b   [N=10] & 0.0e+00 \\
+D.3 & chi\_i chi\_j chi\_k chi\_l is one Pauli string & 0.0e+00 \\
+D.4 & (chi\_i chi\_j chi\_k chi\_l)\^\{\}dagger = itself  [(-1)\^\{\}6 = +1] & 0.0e+00 \\
+D.5 & H\_SYK is Hermitian and traceless & 1.1e-16 \\
+D.6 & number of Pauli strings = C(10,4) = 210 & 0.0e+00 \\
+D.7 & commute(a,b) predicate matches [A,B] = 0 & 0.0e+00 \\
+D.8 & exp(-i t P) = cos t - i sin t P & 0.0e+00 \\
+D.9 & dE/dtheta$|$\_0 = -2 Im $<$P psi$|$H psi$>$ & 1.4e-11 \\
+D.10 & H\_\{q=2\} Hermitian & 0.0e+00 \\
+D.11 & H\_\{q=2\} psi\_0 = E\_0 psi\_0 & 2.7e-15 \\
+D.12 & QWC shot estimator is unbiased & 2.8e-04 \\
+\bottomrule
+\end{tabular}
